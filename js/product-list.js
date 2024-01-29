@@ -1,35 +1,12 @@
-const products = [
-    {
-        id: '1',
-        title: 'Baby Yoda',
-        image: 'img/baby-yoda.svg',
-        description: 'A little green creature with a Force',
-        price: 9.99
-    },
-    {
-        id: '2',
-        title: 'Banana',
-        image: 'img/banana.svg',
-        description: 'A fresh, ripe banana packed with natural sweetness, perfect for a healthy snack.',
-        price: 8.99
-    },
-    {
-        id: '3',
-        title: 'Viking',
-        image: 'img/viking.svg',
-        description: 'An intricately designed Viking figure, symbolizing strength and adventure, ideal for collectors.',
-        price: 7.99
-    },
-    {
-        id: '4',
-        title: 'Girl',
-        image: 'img/girl.svg',
-        description: 'A charming illustration of a girl, capturing the essence of youth and joy, great for decoration.',
-        price: 6.99
-    }
-];
+const response = await fetch('api/products.json');
+const products = await response.json();
+renderProducts(products);
 
-function renderProducts(products) {
+// fetch('api/products.json')
+//   .then( response => response.json()  )
+//   .then( products => renderProducts(products) );
+
+function renderProducts(products, rate = 1) {
     let productsDomString = '';
     for (const product of products) {
         productsDomString += `
@@ -44,7 +21,7 @@ function renderProducts(products) {
                     Info
                 </button>
                 <button class="product-card__buttons-buy button button-card">
-                    Buy - ${product.price}
+                    Buy - ${(product.price * rate).toFixed(2)}
                 </button>
             </div>
         </article>`;
@@ -52,4 +29,15 @@ function renderProducts(products) {
     document.querySelector('.products__list').innerHTML = productsDomString;
 }
 
-renderProducts(products);
+let currencies;
+async function convertCurrency() {
+    const currencyTo = document.querySelector('.products__currency').value;
+    if (!currencies) {
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        currencies = await response.json();
+    }
+    const rate = currencies.rates[currencyTo];
+    renderProducts(products, rate);
+}
+
+document.querySelector('.products__currency').addEventListener('change', convertCurrency);
